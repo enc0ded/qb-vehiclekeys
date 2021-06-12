@@ -3,6 +3,11 @@ TriggerEvent('QBCore:GetObject', function(obj) QBCore = obj end)
 
 local VehicleList = {}
 
+Citizen.CreateThread(function()
+    Wait(1000)
+    LoadKeysFromFile()
+end)
+
 QBCore.Functions.CreateCallback('vehiclekeys:CheckHasKey', function(source, cb, plate)
     local Player = QBCore.Functions.GetPlayer(source)
     cb(CheckOwner(plate, Player.PlayerData.citizenid))
@@ -99,4 +104,44 @@ end)
 QBCore.Functions.CreateUseableItem("advancedlockpick", function(source, item)
     local Player = QBCore.Functions.GetPlayer(source)
     TriggerClientEvent("lockpicks:UseLockpick", source, true)
+end)
+
+function SaveKeysToFile()
+    SaveResourceFile(GetCurrentResourceName(), "vehicle-keys.json", json.encode(VehicleList), -1)
+end
+  
+function LoadKeysFromFile()
+    local vehicles = LoadResourceFile(GetCurrentResourceName(), "vehicle-keys.json")
+    if vehicles ~= '' then
+        VehicleList = json.decode(vehicles)
+    end
+end
+
+-- save keys when server reboots
+AddEventHandler('txAdmin:events:scheduledRestart', function(eventData)
+    if eventData.secondsRemaining == 60 then
+        Citizen.CreateThread(function() 
+        Wait(50000)
+        SaveKeysToFile()
+        end)
+    end
+end)
+
+-- remove key when vehicle is unregistered
+RegisterServerEvent('persistent-vehicles/server/forget-vehicle')
+AddEventHandler("persistent-vehicles/server/forget-vehicle", function(plate)
+    if VehicleList ~= nil then
+        for k, val in pairs(VehicleList) do
+            if val.plate == plate then
+                VehicleList[k] = nil
+                break
+            end
+        end
+    end
+end)
+
+-- save vehicle keys when mod restarts
+AddEventHandler("onResourceStop", function(resource)
+    if resource ~= GetCurrentResourceName() then return end
+    SaveKeysToFile()
 end)
