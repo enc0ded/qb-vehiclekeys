@@ -200,8 +200,9 @@ function LockVehicle()
     local vehpos = GetEntityCoords(veh, false)
     if veh ~= nil and #(pos - vehpos) < 7.5 then
         QBCore.Functions.TriggerCallback('vehiclekeys:CheckHasKey', function(result)
-            if result then
-                if HasKey then
+            if result == false then
+                QBCore.Functions.Notify('You dont have the keys of the vehicle..', 'error')
+            else
                     local vehLockStatus = GetVehicleDoorLockStatus(veh)
                     loadAnimDict("anim@mp_player_intmenu@key_fob@")
                     TaskPlayAnim(ped, 'anim@mp_player_intmenu@key_fob@', 'fob_click' ,3.0, 3.0, -1, 49, 0, false, false, false)
@@ -212,7 +213,7 @@ function LockVehicle()
                         TriggerServerEvent("InteractSound_SV:PlayWithinDistance", 5, "lock", 0.3)
                         SetVehicleDoorsLocked(veh, 2)
                         if(GetVehicleDoorLockStatus(veh) == 2)then
-                            QBCore.Functions.Notify("Voertuig vergrendeld!")
+                            QBCore.Functions.Notify("Locked!")
                         else
                             QBCore.Functions.Notify("Something went wrong whit the locking system!")
                         end
@@ -222,7 +223,7 @@ function LockVehicle()
                         TriggerServerEvent("InteractSound_SV:PlayWithinDistance", 5, "unlock", 0.3)
                         SetVehicleDoorsLocked(veh, 1)
                         if(GetVehicleDoorLockStatus(veh) == 1)then
-                            QBCore.Functions.Notify("Voertuig ontgrendeld!")
+                            QBCore.Functions.Notify("Unlocked!")
                         else
                             QBCore.Functions.Notify("Something went wrong whit the locking system!")
                         end
@@ -245,9 +246,7 @@ function LockVehicle()
                         SetVehicleIndicatorLights(veh, 1, false)
                     end
                 end
-            else
-                QBCore.Functions.Notify('You dont have the keys of the vehicle..', 'error')
-            end
+   
         end, plate)
     end
 end
